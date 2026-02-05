@@ -20,7 +20,7 @@ export interface UpdateUserRequest {
   providedIn: 'root'
 })
 export class UserService {
-  private readonly baseUrl = '/api/users';
+  private readonly baseUrl = 'http://13.60.30.143:8080/api/users';
 
   constructor(private http: HttpClient) {}
 

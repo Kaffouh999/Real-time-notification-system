@@ -23,7 +23,7 @@ export interface UpdateNotificationRequest {
   providedIn: 'root'
 })
 export class NotificationService {
-  private readonly baseUrl = '/api/notifications';
+  private readonly baseUrl = 'http://13.60.30.143:8080/api/notifications';
 
   constructor(private http: HttpClient) {}
 
