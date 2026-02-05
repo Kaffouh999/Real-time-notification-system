@@ -1,0 +1,251 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1>Real-time Notifications</h1>
+      <p>Manage users and notifications connected to the Spring Boot API.</p>
+    </div>
+    <div
+      class="status"
+      [class.error]="errorMessage"
+      [class.success]="successMessage"
+      *ngIf="errorMessage || successMessage"
+    >
+      {{ errorMessage || successMessage }}
+    </div>
+  </header>
+
+  <section class="grid">
+    <div class="card">
+      <div class="card-header">
+        <h2>Users</h2>
+        <span class="badge" *ngIf="isLoadingUsers">Loading...</span>
+      </div>
+
+      <form class="form" (ngSubmit)="createUser()">
+        <div class="form-grid">
+          <label>
+            Name
+            <input
+              type="text"
+              name="userName"
+              placeholder="Jane Doe"
+              [(ngModel)]="userForm.name"
+            />
+          </label>
+          <label>
+            Email
+            <input
+              type="email"
+              name="userEmail"
+              placeholder="jane@example.com"
+              [(ngModel)]="userForm.email"
+            />
+          </label>
+        </div>
+        <button type="submit" class="primary">Create user</button>
+      </form>
+
+      <div class="editor" *ngIf="editingUser">
+        <h3>Edit user</h3>
+        <div class="form-grid">
+          <label>
+            Name
+            <input
+              type="text"
+              name="editUserName"
+              [(ngModel)]="editingUser.name"
+            />
+          </label>
+          <label>
+            Email
+            <input
+              type="email"
+              name="editUserEmail"
+              [(ngModel)]="editingUser.email"
+            />
+          </label>
+        </div>
+        <div class="actions">
+          <button type="button" class="primary" (click)="saveUser()">Save</button>
+          <button type="button" class="ghost" (click)="cancelEditUser()">Cancel</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="list" *ngIf="users.length > 0">
+        <div class="list-item" *ngFor="let user of users">
+          <div>
+            <h3>{{ user.name }}</h3>
+            <p>{{ user.email }}</p>
+          </div>
+          <div class="actions">
+            <button type="button" (click)="startEditUser(user)">Edit</button>
+            <button type="button" class="danger" (click)="deleteUser(user.id)">Delete</button>
+          </div>
+        </div>
+      </div>
+      <div class="empty" *ngIf="!isLoadingUsers && users.length === 0">
+        No users yet.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Notifications</h2>
+        <span class="badge" *ngIf="isLoadingNotifications">Loading...</span>
+      </div>
+
+      <form class="form" (ngSubmit)="createNotification()">
+        <div class="form-grid">
+          <label>
+            Title
+            <input
+              type="text"
+              name="notificationTitle"
+              placeholder="Weekly summary"
+              [(ngModel)]="notificationForm.title"
+            />
+          </label>
+          <label>
+            User
+            <select name="notificationUser" [(ngModel)]="notificationForm.userId">
+              <option [ngValue]="null">Select user</option>
+              <option *ngFor="let user of users" [ngValue]="user.id">
+                {{ user.name }} ({{ user.email }})
+              </option>
+            </select>
+          </label>
+        </div>
+        <label>
+          Content
+          <textarea
+            name="notificationContent"
+            rows="3"
+            placeholder="Write a quick update..."
+            [(ngModel)]="notificationForm.content"
+          ></textarea>
+        </label>
+        <button type="submit" class="primary">Create notification</button>
+      </form>
+
+      <div class="editor" *ngIf="editingNotification">
+        <h3>Edit notification</h3>
+        <div class="form-grid">
+          <label>
+            Title
+            <input
+              type="text"
+              name="editNotificationTitle"
+              [(ngModel)]="editingNotification.title"
+            />
+          </label>
+          <label>
+            Status
+            <select name="editNotificationStatus" [(ngModel)]="editingNotification.status">
+              <option *ngFor="let status of statusOptions" [ngValue]="status">
+                {{ status }}
+              </option>
+            </select>
+          </label>
+          <label>
+            User
+            <select name="editNotificationUser" [(ngModel)]="editingNotification.userId">
+              <option *ngFor="let user of users" [ngValue]="user.id">
+                {{ user.name }} ({{ user.email }})
+              </option>
+            </select>
+          </label>
+        </div>
+        <label>
+          Content
+          <textarea
+            name="editNotificationContent"
+            rows="3"
+            [(ngModel)]="editingNotification.content"
+          ></textarea>
+        </label>
+        <div class="actions">
+          <button type="button" class="primary" (click)="saveNotification()">Save</button>
+          <button type="button" class="ghost" (click)="cancelEditNotification()">Cancel</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="list" *ngIf="notifications.length > 0">
+        <div class="list-item" *ngFor="let notification of notifications">
+          <div>
+            <div class="title-row">
+              <h3>{{ notification.title }}</h3>
+              <span
+                class="status-pill"
+                [class.pending]="notification.status === 'PENDING'"
+                [class.sent]="notification.status === 'SENT'"
+                [class.failed]="notification.status === 'FAILED'"
+              >
+                {{ notification.status }}
+              </span>
+            </div>
+            <p class="meta">
+              {{ notification.user?.name || 'Unknown user' }} ·
+              {{ notification.createdAt | date: 'short' }}
+            </p>
+            <p>{{ notification.content }}</p>
+          </div>
+          <div class="actions">
+            <button type="button" (click)="startEditNotification(notification)">Edit</button>
+            <button type="button" class="danger" (click)="deleteNotification(notification.id)">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="empty" *ngIf="!isLoadingNotifications && notifications.length === 0">
+        No notifications yet.
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header">
+      <h2>User notifications</h2>
+      <span class="badge" *ngIf="isLoadingUserNotifications">Loading...</span>
+    </div>
+
+    <div class="form-grid">
+      <label>
+        Select user
+        <select name="selectedUser" [(ngModel)]="selectedUserId" (ngModelChange)="loadUserNotifications()">
+          <option [ngValue]="null">Choose a user</option>
+          <option *ngFor="let user of users" [ngValue]="user.id">
+            {{ user.name }} ({{ user.email }})
+          </option>
+        </select>
+      </label>
+    </div>
+
+    <div class="list" *ngIf="userNotifications.length > 0">
+      <div class="list-item" *ngFor="let notification of userNotifications">
+        <div>
+          <div class="title-row">
+            <h3>{{ notification.title }}</h3>
+            <span
+              class="status-pill"
+              [class.pending]="notification.status === 'PENDING'"
+              [class.sent]="notification.status === 'SENT'"
+              [class.failed]="notification.status === 'FAILED'"
+            >
+              {{ notification.status }}
+            </span>
+          </div>
+          <p class="meta">{{ notification.createdAt | date: 'short' }}</p>
+          <p>{{ notification.content }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="empty" *ngIf="selectedUserId && !isLoadingUserNotifications && userNotifications.length === 0">
+      No notifications for this user yet.
+    </div>
+  </section>
+</div>
